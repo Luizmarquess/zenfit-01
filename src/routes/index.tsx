@@ -12,9 +12,9 @@ import { Sparkles, MapPin, Heart, Search, Star, Gift, TrendingUp, Users, CheckCi
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title: "MassoConecta — Encontre seu massoterapeuta" },
+      { title: "zenfit — Encontre seu massoterapeuta" },
       { name: "description", content: "Conectamos clientes a massoterapeutas em Aracoiaba, Aratuba, Itapiúna, Baturité e Capistrano." },
-      { property: "og:title", content: "MassoConecta — Bem-estar perto de você" },
+      { property: "og:title", content: "zenfit — Bem-estar perto de você" },
       { property: "og:description", content: "Encontre massoterapeutas qualificados na sua região." },
     ],
   }),
@@ -37,7 +37,7 @@ function Index() {
             <div className="h-9 w-9 rounded-xl flex items-center justify-center" style={{ background: "var(--gradient-hero)" }}>
               <Heart className="h-5 w-5 text-primary-foreground" />
             </div>
-            <span className="font-semibold text-lg tracking-tight">MassoConecta</span>
+            <span className="font-semibold text-lg tracking-tight">zenfit</span>
           </div>
           <Badge variant="secondary" className="hidden sm:inline-flex">Maciço de Baturité · CE</Badge>
         </div>
@@ -76,7 +76,7 @@ function Index() {
 
       <footer className="border-t border-border/60 py-8 mt-12">
         <div className="container mx-auto px-6 text-center text-sm text-muted-foreground">
-          © {new Date().getFullYear()} MassoConecta · Cuidando do seu bem-estar
+          © {new Date().getFullYear()} zenfit · Cuidando do seu bem-estar
         </div>
       </footer>
     </div>
