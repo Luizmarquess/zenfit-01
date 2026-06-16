@@ -7,7 +7,9 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import { Sparkles, MapPin, Heart, Search, Star, Gift, TrendingUp, Users, CheckCircle2, Clock, Wallet } from "lucide-react";
+import { Sparkles, MapPin, Heart, Search, Star, Gift, TrendingUp, Users, CheckCircle2, Clock, Wallet, ClipboardList, CreditCard, Banknote, QrCode } from "lucide-react";
+import { Textarea } from "@/components/ui/textarea";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -111,7 +113,14 @@ function ClientePanel() {
   const [regiao, setRegiao] = useState("");
   const [tipo, setTipo] = useState("");
   const [variacaoIdx, setVariacaoIdx] = useState<number | null>(null);
-  const [enviado, setEnviado] = useState(false);
+  const [etapa, setEtapa] = useState<"busca" | "anamnese" | "pagamento" | "concluido">("busca");
+  const [pagamento, setPagamento] = useState("");
+  const [anamnese, setAnamnese] = useState({
+    nome: "", idade: "", contato: "",
+    queixa: "", historico: "", doencas: "",
+    medicamentos: "", cirurgias: "", alergias: "",
+    habitos: "", contraindicacoes: "",
+  });
 
   const massagemSelecionada = MASSAGENS.find((m) => m.id === tipo);
   const variacaoSelecionada = variacaoIdx !== null ? massagemSelecionada?.variacoes[variacaoIdx] : null;
@@ -119,11 +128,11 @@ function ClientePanel() {
   const handleSelecionarTipo = (id: string) => {
     setTipo(id);
     setVariacaoIdx(null);
-    setEnviado(false);
+    setEtapa("busca");
   };
 
   return (
-    <Card className="shadow-[var(--shadow-soft)]">
+    <Card className="shadow-[var(--shadow-soft)] border-primary/20">
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
           <Search className="h-5 w-5 text-primary" /> Buscar massoterapeuta
@@ -164,7 +173,7 @@ function ClientePanel() {
               {massagemSelecionada.variacoes.map((v, idx) => (
                 <button
                   key={idx}
-                  onClick={() => { setVariacaoIdx(idx); setEnviado(false); }}
+                  onClick={() => { setVariacaoIdx(idx); setEtapa("busca"); }}
                   className={`flex items-center justify-between rounded-lg border p-3 transition-all ${variacaoIdx === idx ? "border-primary bg-primary/5 ring-2 ring-primary/20" : "border-border hover:border-primary/40"}`}
                 >
                   <span className="flex items-center gap-2 text-sm">
@@ -184,21 +193,197 @@ function ClientePanel() {
         <Button
           className="w-full h-11"
           disabled={!regiao || !tipo || variacaoIdx === null}
-          onClick={() => setEnviado(true)}
+          onClick={() => setEtapa("anamnese")}
         >
-          Buscar profissionais
+          Continuar para anamnese
         </Button>
 
-        {enviado && regiao && tipo && variacaoSelecionada && (
+        {etapa !== "busca" && variacaoSelecionada && (
           <div className="rounded-lg bg-primary/5 border border-primary/20 p-4 text-sm flex items-start gap-2">
             <CheckCircle2 className="h-5 w-5 text-primary shrink-0 mt-0.5" />
             <div>
-              Buscando <strong>{massagemSelecionada?.nome}</strong> ({variacaoSelecionada.duracao}) — <strong>R$ {variacaoSelecionada.valor}</strong> em <strong>{regiao}</strong>...
+              <strong>{massagemSelecionada?.nome}</strong> ({variacaoSelecionada.duracao}) — <strong>R$ {variacaoSelecionada.valor}</strong> em <strong>{regiao}</strong>
+            </div>
+          </div>
+        )}
+
+        {etapa === "anamnese" && (
+          <AnamneseForm
+            anamnese={anamnese}
+            setAnamnese={setAnamnese}
+            onContinuar={() => setEtapa("pagamento")}
+          />
+        )}
+
+        {etapa === "pagamento" && variacaoSelecionada && (
+          <PagamentoForm
+            valor={variacaoSelecionada.valor}
+            pagamento={pagamento}
+            setPagamento={setPagamento}
+            onConfirmar={() => setEtapa("concluido")}
+          />
+        )}
+
+        {etapa === "concluido" && (
+          <div className="rounded-lg p-5 text-sm flex items-start gap-3 border-2 border-primary/30" style={{ background: "color-mix(in oklab, var(--primary) 8%, transparent)" }}>
+            <CheckCircle2 className="h-6 w-6 text-primary shrink-0 mt-0.5" />
+            <div className="space-y-1">
+              <div className="font-semibold text-primary">Agendamento concluído!</div>
+              <div className="text-muted-foreground">
+                Em breve um massoterapeuta de <strong>{regiao}</strong> entrará em contato com <strong>{anamnese.nome || "você"}</strong>. Pagamento: <strong>{pagamento}</strong>.
+              </div>
             </div>
           </div>
         )}
       </CardContent>
     </Card>
+  );
+}
+
+type AnamneseData = {
+  nome: string; idade: string; contato: string;
+  queixa: string; historico: string; doencas: string;
+  medicamentos: string; cirurgias: string; alergias: string;
+  habitos: string; contraindicacoes: string;
+};
+
+function AnamneseForm({
+  anamnese, setAnamnese, onContinuar,
+}: {
+  anamnese: AnamneseData;
+  setAnamnese: React.Dispatch<React.SetStateAction<AnamneseData>>;
+  onContinuar: () => void;
+}) {
+  const set = (k: keyof AnamneseData) => (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) =>
+    setAnamnese(prev => ({ ...prev, [k]: e.target.value }));
+
+  const valido = anamnese.nome && anamnese.idade && anamnese.contato && anamnese.queixa;
+
+  return (
+    <div
+      className="rounded-xl border-2 border-primary/30 p-5 space-y-5"
+      style={{ background: "color-mix(in oklab, var(--primary) 4%, transparent)" }}
+    >
+      <div className="flex items-center gap-2 text-primary">
+        <ClipboardList className="h-5 w-5" />
+        <h3 className="font-display text-xl font-semibold">Ficha de Anamnese</h3>
+      </div>
+      <p className="text-sm text-muted-foreground -mt-3">
+        Suas respostas ajudam o profissional a oferecer um atendimento seguro e personalizado.
+      </p>
+
+      <Section title="Dados pessoais">
+        <div className="grid sm:grid-cols-3 gap-3">
+          <Field label="Nome"><Input value={anamnese.nome} onChange={set("nome")} placeholder="Seu nome" /></Field>
+          <Field label="Idade"><Input type="number" value={anamnese.idade} onChange={set("idade")} placeholder="Ex: 32" /></Field>
+          <Field label="Contato"><Input value={anamnese.contato} onChange={set("contato")} placeholder="(85) 9 9999-9999" /></Field>
+        </div>
+      </Section>
+
+      <Section title="Queixa principal">
+        <Textarea value={anamnese.queixa} onChange={set("queixa")} placeholder="Dor, tensão, estresse, desconforto..." />
+      </Section>
+
+      <Section title="Histórico de saúde">
+        <Textarea value={anamnese.historico} onChange={set("historico")} placeholder="Condições anteriores relevantes" />
+      </Section>
+
+      <div className="grid sm:grid-cols-2 gap-4">
+        <Section title="Doenças atuais ou anteriores">
+          <Textarea value={anamnese.doencas} onChange={set("doencas")} placeholder="Diabetes, hipertensão, etc." />
+        </Section>
+        <Section title="Uso de medicamentos">
+          <Textarea value={anamnese.medicamentos} onChange={set("medicamentos")} placeholder="Liste os medicamentos em uso" />
+        </Section>
+        <Section title="Cirurgias recentes">
+          <Textarea value={anamnese.cirurgias} onChange={set("cirurgias")} placeholder="Quais e quando" />
+        </Section>
+        <Section title="Alergias">
+          <Textarea value={anamnese.alergias} onChange={set("alergias")} placeholder="Óleos, cremes, perfumes..." />
+        </Section>
+      </div>
+
+      <Section title="Hábitos de vida">
+        <Textarea value={anamnese.habitos} onChange={set("habitos")} placeholder="Atividade física, sono, trabalho" />
+      </Section>
+
+      <Section title="Contraindicações para a massagem">
+        <Textarea value={anamnese.contraindicacoes} onChange={set("contraindicacoes")} placeholder="Algo que devamos evitar" />
+      </Section>
+
+      <Button className="w-full h-11" disabled={!valido} onClick={onContinuar}>
+        Continuar para pagamento
+      </Button>
+    </div>
+  );
+}
+
+function Section({ title, children }: { title: string; children: React.ReactNode }) {
+  return (
+    <div className="space-y-2">
+      <div className="text-sm font-medium text-primary">{title}</div>
+      {children}
+    </div>
+  );
+}
+
+function Field({ label, children }: { label: string; children: React.ReactNode }) {
+  return (
+    <div className="space-y-1.5">
+      <Label className="text-xs text-muted-foreground">{label}</Label>
+      {children}
+    </div>
+  );
+}
+
+function PagamentoForm({
+  valor, pagamento, setPagamento, onConfirmar,
+}: {
+  valor: number;
+  pagamento: string;
+  setPagamento: (v: string) => void;
+  onConfirmar: () => void;
+}) {
+  const opcoes = [
+    { id: "Pix", icon: <QrCode className="h-5 w-5" />, desc: "Pagamento instantâneo" },
+    { id: "Cartão de crédito", icon: <CreditCard className="h-5 w-5" />, desc: "Parcelamento disponível" },
+    { id: "Cartão de débito", icon: <CreditCard className="h-5 w-5" />, desc: "Débito à vista" },
+    { id: "Espécie", icon: <Banknote className="h-5 w-5" />, desc: "Pago no atendimento" },
+  ];
+
+  return (
+    <div
+      className="rounded-xl border-2 border-primary/30 p-5 space-y-4"
+      style={{ background: "color-mix(in oklab, var(--primary) 4%, transparent)" }}
+    >
+      <div className="flex items-center gap-2 text-primary">
+        <Wallet className="h-5 w-5" />
+        <h3 className="font-display text-xl font-semibold">Forma de pagamento</h3>
+      </div>
+      <div className="text-sm text-muted-foreground">
+        Valor total: <strong className="text-primary">R$ {valor}</strong>
+      </div>
+
+      <RadioGroup value={pagamento} onValueChange={setPagamento} className="grid sm:grid-cols-2 gap-2">
+        {opcoes.map(o => (
+          <label
+            key={o.id}
+            className={`flex items-center gap-3 rounded-lg border p-3 cursor-pointer transition-all ${pagamento === o.id ? "border-primary bg-primary/5 ring-2 ring-primary/20" : "border-border hover:border-primary/40"}`}
+          >
+            <RadioGroupItem value={o.id} />
+            <span className="text-primary">{o.icon}</span>
+            <span className="flex-1">
+              <span className="block text-sm font-medium">{o.id}</span>
+              <span className="block text-xs text-muted-foreground">{o.desc}</span>
+            </span>
+          </label>
+        ))}
+      </RadioGroup>
+
+      <Button className="w-full h-11" disabled={!pagamento} onClick={onConfirmar}>
+        Confirmar agendamento
+      </Button>
+    </div>
   );
 }
 
