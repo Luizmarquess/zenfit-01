@@ -23,9 +23,33 @@ export const Route = createFileRoute("/")({
 
 const REGIOES = ["Aracoiaba", "Aratuba", "Itapiúna", "Baturité", "Capistrano"];
 const MASSAGENS = [
-  { id: "anti-estresse", nome: "Anti-stresse", desc: "Alívio profundo da tensão acumulada" },
-  { id: "relaxante", nome: "Massagem Relaxante", desc: "Tranquilidade e bem-estar para corpo e mente" },
-  { id: "ventosa", nome: "Ventosa", desc: "Terapia milenar para circulação e dores" },
+  {
+    id: "relaxante",
+    nome: "Massagem Relaxante",
+    desc: "Tranquilidade e bem-estar para corpo e mente",
+    variacoes: [
+      { duracao: "30 min", valor: 60 },
+      { duracao: "1 hora", valor: 100 },
+    ],
+  },
+  {
+    id: "antiestresse",
+    nome: "Massagem Antiestresse",
+    desc: "Alívio profundo da tensão acumulada",
+    variacoes: [
+      { duracao: "40 min", valor: 80 },
+      { duracao: "1 hora", valor: 120 },
+    ],
+  },
+  {
+    id: "esportiva",
+    nome: "Massagem Esportiva",
+    desc: "Recuperação muscular e performance",
+    variacoes: [
+      { duracao: "50 min", valor: 110 },
+      { duracao: "1h30", valor: 160 },
+    ],
+  },
 ];
 
 function Index() {
