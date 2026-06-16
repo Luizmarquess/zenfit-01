@@ -7,7 +7,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import { Sparkles, MapPin, Heart, Search, Star, Gift, TrendingUp, Users, CheckCircle2 } from "lucide-react";
+import { Sparkles, MapPin, Heart, Search, Star, Gift, TrendingUp, Users, CheckCircle2, Clock, Wallet } from "lucide-react";
 
 export const Route = createFileRoute("/")({
   head: () => ({
