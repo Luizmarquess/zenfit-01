@@ -7,7 +7,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import { Sparkles, MapPin, Heart, Search, Star, Gift, TrendingUp, Users, CheckCircle2 } from "lucide-react";
+import { Sparkles, MapPin, Heart, Search, Star, Gift, TrendingUp, Users, CheckCircle2, Clock, Wallet } from "lucide-react";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -23,9 +23,33 @@ export const Route = createFileRoute("/")({
 
 const REGIOES = ["Aracoiaba", "Aratuba", "Itapiúna", "Baturité", "Capistrano"];
 const MASSAGENS = [
-  { id: "anti-estresse", nome: "Anti-stresse", desc: "Alívio profundo da tensão acumulada" },
-  { id: "relaxante", nome: "Massagem Relaxante", desc: "Tranquilidade e bem-estar para corpo e mente" },
-  { id: "ventosa", nome: "Ventosa", desc: "Terapia milenar para circulação e dores" },
+  {
+    id: "relaxante",
+    nome: "Massagem Relaxante",
+    desc: "Tranquilidade e bem-estar para corpo e mente",
+    variacoes: [
+      { duracao: "30 min", valor: 60 },
+      { duracao: "1 hora", valor: 100 },
+    ],
+  },
+  {
+    id: "antiestresse",
+    nome: "Massagem Antiestresse",
+    desc: "Alívio profundo da tensão acumulada",
+    variacoes: [
+      { duracao: "40 min", valor: 80 },
+      { duracao: "1 hora", valor: 120 },
+    ],
+  },
+  {
+    id: "esportiva",
+    nome: "Massagem Esportiva",
+    desc: "Recuperação muscular e performance",
+    variacoes: [
+      { duracao: "50 min", valor: 110 },
+      { duracao: "1h30", valor: 160 },
+    ],
+  },
 ];
 
 function Index() {
@@ -86,7 +110,17 @@ function Index() {
 function ClientePanel() {
   const [regiao, setRegiao] = useState("");
   const [tipo, setTipo] = useState("");
+  const [variacaoIdx, setVariacaoIdx] = useState<number | null>(null);
   const [enviado, setEnviado] = useState(false);
+
+  const massagemSelecionada = MASSAGENS.find((m) => m.id === tipo);
+  const variacaoSelecionada = variacaoIdx !== null ? massagemSelecionada?.variacoes[variacaoIdx] : null;
+
+  const handleSelecionarTipo = (id: string) => {
+    setTipo(id);
+    setVariacaoIdx(null);
+    setEnviado(false);
+  };
 
   return (
     <Card className="shadow-[var(--shadow-soft)]">
@@ -94,7 +128,7 @@ function ClientePanel() {
         <CardTitle className="flex items-center gap-2">
           <Search className="h-5 w-5 text-primary" /> Buscar massoterapeuta
         </CardTitle>
-        <CardDescription>Selecione sua região e o tipo de massagem desejado.</CardDescription>
+        <CardDescription>Selecione sua região, o tipo de massagem e a duração desejada.</CardDescription>
       </CardHeader>
       <CardContent className="space-y-5">
         <div className="space-y-2">
@@ -113,7 +147,7 @@ function ClientePanel() {
             {MASSAGENS.map(m => (
               <button
                 key={m.id}
-                onClick={() => setTipo(m.id)}
+                onClick={() => handleSelecionarTipo(m.id)}
                 className={`text-left rounded-lg border p-3 transition-all ${tipo === m.id ? "border-primary bg-primary/5 ring-2 ring-primary/20" : "border-border hover:border-primary/40"}`}
               >
                 <div className="font-medium text-sm">{m.nome}</div>
@@ -123,19 +157,43 @@ function ClientePanel() {
           </div>
         </div>
 
+        {massagemSelecionada && (
+          <div className="space-y-2">
+            <Label className="flex items-center gap-1"><Clock className="h-4 w-4" /> Duração e valor</Label>
+            <div className="grid sm:grid-cols-2 gap-2">
+              {massagemSelecionada.variacoes.map((v, idx) => (
+                <button
+                  key={idx}
+                  onClick={() => { setVariacaoIdx(idx); setEnviado(false); }}
+                  className={`flex items-center justify-between rounded-lg border p-3 transition-all ${variacaoIdx === idx ? "border-primary bg-primary/5 ring-2 ring-primary/20" : "border-border hover:border-primary/40"}`}
+                >
+                  <span className="flex items-center gap-2 text-sm">
+                    <Clock className="h-4 w-4 text-muted-foreground" />
+                    {v.duracao}
+                  </span>
+                  <span className="font-semibold text-sm flex items-center gap-1">
+                    <Wallet className="h-4 w-4 text-muted-foreground" />
+                    R$ {v.valor}
+                  </span>
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
+
         <Button
           className="w-full h-11"
-          disabled={!regiao || !tipo}
+          disabled={!regiao || !tipo || variacaoIdx === null}
           onClick={() => setEnviado(true)}
         >
           Buscar profissionais
         </Button>
 
-        {enviado && regiao && tipo && (
+        {enviado && regiao && tipo && variacaoSelecionada && (
           <div className="rounded-lg bg-primary/5 border border-primary/20 p-4 text-sm flex items-start gap-2">
             <CheckCircle2 className="h-5 w-5 text-primary shrink-0 mt-0.5" />
             <div>
-              Buscando massoterapeutas de <strong>{MASSAGENS.find(m => m.id === tipo)?.nome}</strong> em <strong>{regiao}</strong>...
+              Buscando <strong>{massagemSelecionada?.nome}</strong> ({variacaoSelecionada.duracao}) — <strong>R$ {variacaoSelecionada.valor}</strong> em <strong>{regiao}</strong>...
             </div>
           </div>
         )}
