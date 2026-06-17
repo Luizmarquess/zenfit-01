@@ -1,5 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
+import { useNavigate } from "@tanstack/react-router";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -7,9 +9,14 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import { Sparkles, MapPin, Heart, Search, Star, Gift, TrendingUp, Users, CheckCircle2, Clock, Wallet, ClipboardList, CreditCard, Banknote, QrCode } from "lucide-react";
+import { Sparkles, MapPin, Heart, Search, Star, Gift, TrendingUp, Users, CheckCircle2, Clock, Wallet, ClipboardList, CreditCard, Banknote, QrCode, Loader2, Phone } from "lucide-react";
 import { Textarea } from "@/components/ui/textarea";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/hooks/use-auth";
+import { SiteHeader } from "@/components/site-header";
+import { toast } from "sonner";
+import { useEffect } from "react";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -57,17 +64,7 @@ const MASSAGENS = [
 function Index() {
   return (
     <div className="min-h-screen bg-background">
-      <header className="border-b border-border/60 backdrop-blur sticky top-0 z-30 bg-background/80">
-        <div className="container mx-auto px-6 py-4 flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <div className="h-9 w-9 rounded-xl flex items-center justify-center" style={{ background: "var(--gradient-hero)" }}>
-              <Heart className="h-5 w-5 text-primary-foreground" />
-            </div>
-            <span className="font-semibold text-lg tracking-tight">zenfit</span>
-          </div>
-          <Badge variant="secondary" className="hidden sm:inline-flex">Maciço de Baturité · CE</Badge>
-        </div>
-      </header>
+      <SiteHeader />
 
       <section className="container mx-auto px-6 pt-12 pb-8 text-center max-w-3xl">
         <Badge className="mb-4" variant="outline">
