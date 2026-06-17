@@ -14,16 +14,231 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      agendamentos: {
+        Row: {
+          cidade: string
+          cliente_id: string
+          created_at: string
+          duracao: string
+          forma_pagamento: string
+          id: string
+          massoterapeuta_id: string | null
+          status: string
+          tipo_massagem: string
+          updated_at: string
+          valor: number
+        }
+        Insert: {
+          cidade: string
+          cliente_id: string
+          created_at?: string
+          duracao: string
+          forma_pagamento: string
+          id?: string
+          massoterapeuta_id?: string | null
+          status?: string
+          tipo_massagem: string
+          updated_at?: string
+          valor: number
+        }
+        Update: {
+          cidade?: string
+          cliente_id?: string
+          created_at?: string
+          duracao?: string
+          forma_pagamento?: string
+          id?: string
+          massoterapeuta_id?: string | null
+          status?: string
+          tipo_massagem?: string
+          updated_at?: string
+          valor?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "agendamentos_massoterapeuta_id_fkey"
+            columns: ["massoterapeuta_id"]
+            isOneToOne: false
+            referencedRelation: "massoterapeutas"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      anamneses: {
+        Row: {
+          alergias: string | null
+          cirurgias: string | null
+          contato: string | null
+          contraindicacoes: string | null
+          created_at: string
+          doencas: string | null
+          habitos: string | null
+          historico: string | null
+          id: string
+          idade: string | null
+          medicamentos: string | null
+          nome: string
+          queixa: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          alergias?: string | null
+          cirurgias?: string | null
+          contato?: string | null
+          contraindicacoes?: string | null
+          created_at?: string
+          doencas?: string | null
+          habitos?: string | null
+          historico?: string | null
+          id?: string
+          idade?: string | null
+          medicamentos?: string | null
+          nome: string
+          queixa?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          alergias?: string | null
+          cirurgias?: string | null
+          contato?: string | null
+          contraindicacoes?: string | null
+          created_at?: string
+          doencas?: string | null
+          habitos?: string | null
+          historico?: string | null
+          id?: string
+          idade?: string | null
+          medicamentos?: string | null
+          nome?: string
+          queixa?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      massoterapeutas: {
+        Row: {
+          ativo: boolean
+          avaliacao: number | null
+          bio: string | null
+          cidade: string
+          created_at: string
+          especialidades: string[]
+          id: string
+          nome: string
+          premium: boolean
+          telefone: string | null
+          updated_at: string
+          user_id: string | null
+        }
+        Insert: {
+          ativo?: boolean
+          avaliacao?: number | null
+          bio?: string | null
+          cidade: string
+          created_at?: string
+          especialidades?: string[]
+          id?: string
+          nome: string
+          premium?: boolean
+          telefone?: string | null
+          updated_at?: string
+          user_id?: string | null
+        }
+        Update: {
+          ativo?: boolean
+          avaliacao?: number | null
+          bio?: string | null
+          cidade?: string
+          created_at?: string
+          especialidades?: string[]
+          id?: string
+          nome?: string
+          premium?: boolean
+          telefone?: string | null
+          updated_at?: string
+          user_id?: string | null
+        }
+        Relationships: []
+      }
+      profiles: {
+        Row: {
+          cidade: string | null
+          created_at: string
+          email: string | null
+          id: string
+          nome: string
+          premium: boolean
+          telefone: string | null
+          tipo: Database["public"]["Enums"]["user_tipo"]
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          cidade?: string | null
+          created_at?: string
+          email?: string | null
+          id?: string
+          nome?: string
+          premium?: boolean
+          telefone?: string | null
+          tipo?: Database["public"]["Enums"]["user_tipo"]
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          cidade?: string | null
+          created_at?: string
+          email?: string | null
+          id?: string
+          nome?: string
+          premium?: boolean
+          telefone?: string | null
+          tipo?: Database["public"]["Enums"]["user_tipo"]
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      user_roles: {
+        Row: {
+          created_at: string
+          id: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          role?: Database["public"]["Enums"]["app_role"]
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      has_role: {
+        Args: {
+          _role: Database["public"]["Enums"]["app_role"]
+          _user_id: string
+        }
+        Returns: boolean
+      }
     }
     Enums: {
-      [_ in never]: never
+      app_role: "admin" | "user"
+      user_tipo: "cliente" | "massoterapeuta"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -150,6 +365,9 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      app_role: ["admin", "user"],
+      user_tipo: ["cliente", "massoterapeuta"],
+    },
   },
 } as const
