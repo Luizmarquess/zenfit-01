@@ -350,11 +350,12 @@ type AnamneseData = {
 };
 
 function AnamneseForm({
-  anamnese, setAnamnese, onContinuar,
+  anamnese, setAnamnese, onContinuar, salvando,
 }: {
   anamnese: AnamneseData;
   setAnamnese: React.Dispatch<React.SetStateAction<AnamneseData>>;
   onContinuar: () => void;
+  salvando?: boolean;
 }) {
   const set = (k: keyof AnamneseData) => (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) =>
     setAnamnese(prev => ({ ...prev, [k]: e.target.value }));
@@ -413,8 +414,8 @@ function AnamneseForm({
         <Textarea value={anamnese.contraindicacoes} onChange={set("contraindicacoes")} placeholder="Algo que devamos evitar" />
       </Section>
 
-      <Button className="w-full h-11" disabled={!valido} onClick={onContinuar}>
-        Continuar para pagamento
+      <Button className="w-full h-11" disabled={!valido || salvando} onClick={onContinuar}>
+        {salvando && <Loader2 className="h-4 w-4 animate-spin mr-2" />}Continuar para pagamento
       </Button>
     </div>
   );
@@ -439,12 +440,13 @@ function Field({ label, children }: { label: string; children: React.ReactNode }
 }
 
 function PagamentoForm({
-  valor, pagamento, setPagamento, onConfirmar,
+  valor, pagamento, setPagamento, onConfirmar, salvando,
 }: {
   valor: number;
   pagamento: string;
   setPagamento: (v: string) => void;
   onConfirmar: () => void;
+  salvando?: boolean;
 }) {
   const opcoes = [
     { id: "Pix", icon: <QrCode className="h-5 w-5" />, desc: "Pagamento instantâneo" },
@@ -482,8 +484,8 @@ function PagamentoForm({
         ))}
       </RadioGroup>
 
-      <Button className="w-full h-11" disabled={!pagamento} onClick={onConfirmar}>
-        Confirmar agendamento
+      <Button className="w-full h-11" disabled={!pagamento || salvando} onClick={onConfirmar}>
+        {salvando && <Loader2 className="h-4 w-4 animate-spin mr-2" />}Confirmar agendamento
       </Button>
     </div>
   );
