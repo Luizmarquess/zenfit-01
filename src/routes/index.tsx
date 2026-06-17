@@ -555,23 +555,23 @@ function PremiumSection() {
 
 function PremiumCard({ tipo, icon, beneficios }: { tipo: string; icon: React.ReactNode; beneficios: { icon: React.ReactNode; title: string; desc: string }[] }) {
   return (
-    <Card className="relative overflow-hidden border-2">
-      <div className="absolute inset-x-0 top-0 h-1" style={{ background: "var(--gradient-premium)" }} />
+    <Card className="relative overflow-hidden border-2 border-emerald-800/60 bg-emerald-950/30">
+      <div className="absolute inset-x-0 top-0 h-1.5 bg-gradient-to-r from-emerald-900 via-emerald-700 to-emerald-900" />
       <CardHeader>
-        <div className="flex items-center gap-2 text-sm text-muted-foreground">{icon} Para {tipo}</div>
-        <CardTitle className="text-2xl">Premium {tipo}</CardTitle>
+        <div className="flex items-center gap-2 text-sm text-emerald-300">{icon} Para {tipo}</div>
+        <CardTitle className="text-2xl text-emerald-100">Premium {tipo}</CardTitle>
       </CardHeader>
       <CardContent className="space-y-4">
         {beneficios.map((b, i) => (
           <div key={i} className="flex gap-3">
-            <div className="h-9 w-9 rounded-lg bg-accent/40 flex items-center justify-center text-accent-foreground shrink-0">{b.icon}</div>
+            <div className="h-9 w-9 rounded-lg bg-emerald-800/60 border border-emerald-700/60 flex items-center justify-center text-emerald-200 shrink-0">{b.icon}</div>
             <div>
-              <div className="font-medium">{b.title}</div>
-              <div className="text-sm text-muted-foreground">{b.desc}</div>
+              <div className="font-medium text-emerald-100">{b.title}</div>
+              <div className="text-sm text-emerald-300/80">{b.desc}</div>
             </div>
           </div>
         ))}
-        <Button className="w-full mt-2" style={{ background: "var(--gradient-premium)", color: "white" }}>
+        <Button className="w-full mt-2 bg-emerald-800 hover:bg-emerald-700 text-emerald-50 border border-emerald-600/60">
           Assinar Premium
         </Button>
       </CardContent>
