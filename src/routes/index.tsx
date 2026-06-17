@@ -107,6 +107,9 @@ function Index() {
 }
 
 function ClientePanel() {
+  const navigate = useNavigate();
+  const qc = useQueryClient();
+  const { user, loading: authLoading } = useAuth();
   const [regiao, setRegiao] = useState("");
   const [tipo, setTipo] = useState("");
   const [variacaoIdx, setVariacaoIdx] = useState<number | null>(null);
@@ -118,6 +121,8 @@ function ClientePanel() {
     medicamentos: "", cirurgias: "", alergias: "",
     habitos: "", contraindicacoes: "",
   });
+  const [massoSelecionadoId, setMassoSelecionadoId] = useState<string | null>(null);
+  const [salvando, setSalvando] = useState(false);
 
   const massagemSelecionada = MASSAGENS.find((m) => m.id === tipo);
   const variacaoSelecionada = variacaoIdx !== null ? massagemSelecionada?.variacoes[variacaoIdx] : null;
@@ -126,6 +131,77 @@ function ClientePanel() {
     setTipo(id);
     setVariacaoIdx(null);
     setEtapa("busca");
+  };
+
+  // Profissionais da cidade selecionada (premium primeiro)
+  const { data: profissionais } = useQuery({
+    queryKey: ["massoterapeutas", regiao],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("massoterapeutas")
+        .select("*")
+        .eq("ativo", true)
+        .eq("cidade", regiao)
+        .order("premium", { ascending: false })
+        .order("avaliacao", { ascending: false });
+      if (error) throw error;
+      return data;
+    },
+    enabled: !!regiao,
+  });
+
+  // Carrega anamnese existente quando entra na etapa
+  useEffect(() => {
+    if (etapa !== "anamnese" || !user) return;
+    supabase.from("anamneses").select("*").eq("user_id", user.id).maybeSingle().then(({ data }) => {
+      if (data) {
+        setAnamnese({
+          nome: data.nome || "", idade: data.idade || "", contato: data.contato || "",
+          queixa: data.queixa || "", historico: data.historico || "", doencas: data.doencas || "",
+          medicamentos: data.medicamentos || "", cirurgias: data.cirurgias || "", alergias: data.alergias || "",
+          habitos: data.habitos || "", contraindicacoes: data.contraindicacoes || "",
+        });
+      }
+    });
+  }, [etapa, user]);
+
+  const continuarParaAnamnese = () => {
+    if (!user) {
+      navigate({ to: "/auth", search: { redirect: "/" } });
+      return;
+    }
+    setEtapa("anamnese");
+  };
+
+  const salvarAnamneseEContinuar = async () => {
+    if (!user) return;
+    setSalvando(true);
+    const { error } = await supabase.from("anamneses").upsert({
+      user_id: user.id, ...anamnese,
+    }, { onConflict: "user_id" });
+    setSalvando(false);
+    if (error) { toast.error("Erro ao salvar anamnese: " + error.message); return; }
+    toast.success("Anamnese salva");
+    setEtapa("pagamento");
+  };
+
+  const confirmarAgendamento = async () => {
+    if (!user || !variacaoSelecionada || !massagemSelecionada) return;
+    setSalvando(true);
+    const { error } = await supabase.from("agendamentos").insert({
+      cliente_id: user.id,
+      massoterapeuta_id: massoSelecionadoId,
+      tipo_massagem: massagemSelecionada.nome,
+      duracao: variacaoSelecionada.duracao,
+      valor: variacaoSelecionada.valor,
+      cidade: regiao,
+      forma_pagamento: pagamento,
+    });
+    setSalvando(false);
+    if (error) { toast.error("Erro: " + error.message); return; }
+    toast.success("Agendamento confirmado!");
+    qc.invalidateQueries({ queryKey: ["admin", "agendamentos"] });
+    setEtapa("concluido");
   };
 
   return (
@@ -187,12 +263,39 @@ function ClientePanel() {
           </div>
         )}
 
+        {regiao && profissionais && profissionais.length > 0 && (
+          <div className="space-y-2">
+            <Label>Massoterapeuta (opcional)</Label>
+            <div className="space-y-2">
+              {profissionais.map((p) => (
+                <button
+                  key={p.id}
+                  onClick={() => setMassoSelecionadoId(massoSelecionadoId === p.id ? null : p.id)}
+                  className={`w-full text-left rounded-lg border p-3 transition-all ${massoSelecionadoId === p.id ? "border-primary bg-primary/5 ring-2 ring-primary/20" : "border-border hover:border-primary/40"}`}
+                >
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <div className="font-medium text-sm flex items-center gap-2">
+                        {p.nome}
+                        {p.premium && <Badge style={{ background: "var(--gradient-premium)", color: "white", border: "none" }} className="text-[10px]"><Sparkles className="h-2.5 w-2.5 mr-0.5" />Premium</Badge>}
+                      </div>
+                      {p.bio && <div className="text-xs text-muted-foreground mt-0.5">{p.bio}</div>}
+                    </div>
+                    <div className="text-xs flex items-center gap-1 text-amber-600 shrink-0"><Star className="h-3 w-3 fill-current" />{p.avaliacao}</div>
+                  </div>
+                  {p.telefone && <div className="text-xs text-muted-foreground mt-1 flex items-center gap-1"><Phone className="h-3 w-3" />{p.telefone}</div>}
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
+
         <Button
           className="w-full h-11"
           disabled={!regiao || !tipo || variacaoIdx === null}
-          onClick={() => setEtapa("anamnese")}
+          onClick={continuarParaAnamnese}
         >
-          Continuar para anamnese
+          {authLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : user ? "Continuar para anamnese" : "Entrar para continuar"}
         </Button>
 
         {etapa !== "busca" && variacaoSelecionada && (
@@ -208,7 +311,8 @@ function ClientePanel() {
           <AnamneseForm
             anamnese={anamnese}
             setAnamnese={setAnamnese}
-            onContinuar={() => setEtapa("pagamento")}
+            onContinuar={salvarAnamneseEContinuar}
+            salvando={salvando}
           />
         )}
 
@@ -217,7 +321,8 @@ function ClientePanel() {
             valor={variacaoSelecionada.valor}
             pagamento={pagamento}
             setPagamento={setPagamento}
-            onConfirmar={() => setEtapa("concluido")}
+            onConfirmar={confirmarAgendamento}
+            salvando={salvando}
           />
         )}
 
