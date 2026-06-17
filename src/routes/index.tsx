@@ -1,5 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
+import { useNavigate } from "@tanstack/react-router";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -7,9 +9,14 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import { Sparkles, MapPin, Heart, Search, Star, Gift, TrendingUp, Users, CheckCircle2, Clock, Wallet, ClipboardList, CreditCard, Banknote, QrCode } from "lucide-react";
+import { Sparkles, MapPin, Heart, Search, Star, Gift, TrendingUp, Users, CheckCircle2, Clock, Wallet, ClipboardList, CreditCard, Banknote, QrCode, Loader2, Phone } from "lucide-react";
 import { Textarea } from "@/components/ui/textarea";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/hooks/use-auth";
+import { SiteHeader } from "@/components/site-header";
+import { toast } from "sonner";
+import { useEffect } from "react";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -57,17 +64,7 @@ const MASSAGENS = [
 function Index() {
   return (
     <div className="min-h-screen bg-background">
-      <header className="border-b border-border/60 backdrop-blur sticky top-0 z-30 bg-background/80">
-        <div className="container mx-auto px-6 py-4 flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <div className="h-9 w-9 rounded-xl flex items-center justify-center" style={{ background: "var(--gradient-hero)" }}>
-              <Heart className="h-5 w-5 text-primary-foreground" />
-            </div>
-            <span className="font-semibold text-lg tracking-tight">zenfit</span>
-          </div>
-          <Badge variant="secondary" className="hidden sm:inline-flex">Maciço de Baturité · CE</Badge>
-        </div>
-      </header>
+      <SiteHeader />
 
       <section className="container mx-auto px-6 pt-12 pb-8 text-center max-w-3xl">
         <Badge className="mb-4" variant="outline">
@@ -110,6 +107,9 @@ function Index() {
 }
 
 function ClientePanel() {
+  const navigate = useNavigate();
+  const qc = useQueryClient();
+  const { user, loading: authLoading } = useAuth();
   const [regiao, setRegiao] = useState("");
   const [tipo, setTipo] = useState("");
   const [variacaoIdx, setVariacaoIdx] = useState<number | null>(null);
@@ -121,6 +121,8 @@ function ClientePanel() {
     medicamentos: "", cirurgias: "", alergias: "",
     habitos: "", contraindicacoes: "",
   });
+  const [massoSelecionadoId, setMassoSelecionadoId] = useState<string | null>(null);
+  const [salvando, setSalvando] = useState(false);
 
   const massagemSelecionada = MASSAGENS.find((m) => m.id === tipo);
   const variacaoSelecionada = variacaoIdx !== null ? massagemSelecionada?.variacoes[variacaoIdx] : null;
@@ -129,6 +131,77 @@ function ClientePanel() {
     setTipo(id);
     setVariacaoIdx(null);
     setEtapa("busca");
+  };
+
+  // Profissionais da cidade selecionada (premium primeiro)
+  const { data: profissionais } = useQuery({
+    queryKey: ["massoterapeutas", regiao],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("massoterapeutas")
+        .select("*")
+        .eq("ativo", true)
+        .eq("cidade", regiao)
+        .order("premium", { ascending: false })
+        .order("avaliacao", { ascending: false });
+      if (error) throw error;
+      return data;
+    },
+    enabled: !!regiao,
+  });
+
+  // Carrega anamnese existente quando entra na etapa
+  useEffect(() => {
+    if (etapa !== "anamnese" || !user) return;
+    supabase.from("anamneses").select("*").eq("user_id", user.id).maybeSingle().then(({ data }) => {
+      if (data) {
+        setAnamnese({
+          nome: data.nome || "", idade: data.idade || "", contato: data.contato || "",
+          queixa: data.queixa || "", historico: data.historico || "", doencas: data.doencas || "",
+          medicamentos: data.medicamentos || "", cirurgias: data.cirurgias || "", alergias: data.alergias || "",
+          habitos: data.habitos || "", contraindicacoes: data.contraindicacoes || "",
+        });
+      }
+    });
+  }, [etapa, user]);
+
+  const continuarParaAnamnese = () => {
+    if (!user) {
+      navigate({ to: "/auth", search: { redirect: "/" } });
+      return;
+    }
+    setEtapa("anamnese");
+  };
+
+  const salvarAnamneseEContinuar = async () => {
+    if (!user) return;
+    setSalvando(true);
+    const { error } = await supabase.from("anamneses").upsert({
+      user_id: user.id, ...anamnese,
+    }, { onConflict: "user_id" });
+    setSalvando(false);
+    if (error) { toast.error("Erro ao salvar anamnese: " + error.message); return; }
+    toast.success("Anamnese salva");
+    setEtapa("pagamento");
+  };
+
+  const confirmarAgendamento = async () => {
+    if (!user || !variacaoSelecionada || !massagemSelecionada) return;
+    setSalvando(true);
+    const { error } = await supabase.from("agendamentos").insert({
+      cliente_id: user.id,
+      massoterapeuta_id: massoSelecionadoId,
+      tipo_massagem: massagemSelecionada.nome,
+      duracao: variacaoSelecionada.duracao,
+      valor: variacaoSelecionada.valor,
+      cidade: regiao,
+      forma_pagamento: pagamento,
+    });
+    setSalvando(false);
+    if (error) { toast.error("Erro: " + error.message); return; }
+    toast.success("Agendamento confirmado!");
+    qc.invalidateQueries({ queryKey: ["admin", "agendamentos"] });
+    setEtapa("concluido");
   };
 
   return (
@@ -190,12 +263,39 @@ function ClientePanel() {
           </div>
         )}
 
+        {regiao && profissionais && profissionais.length > 0 && (
+          <div className="space-y-2">
+            <Label>Massoterapeuta (opcional)</Label>
+            <div className="space-y-2">
+              {profissionais.map((p) => (
+                <button
+                  key={p.id}
+                  onClick={() => setMassoSelecionadoId(massoSelecionadoId === p.id ? null : p.id)}
+                  className={`w-full text-left rounded-lg border p-3 transition-all ${massoSelecionadoId === p.id ? "border-primary bg-primary/5 ring-2 ring-primary/20" : "border-border hover:border-primary/40"}`}
+                >
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <div className="font-medium text-sm flex items-center gap-2">
+                        {p.nome}
+                        {p.premium && <Badge style={{ background: "var(--gradient-premium)", color: "white", border: "none" }} className="text-[10px]"><Sparkles className="h-2.5 w-2.5 mr-0.5" />Premium</Badge>}
+                      </div>
+                      {p.bio && <div className="text-xs text-muted-foreground mt-0.5">{p.bio}</div>}
+                    </div>
+                    <div className="text-xs flex items-center gap-1 text-amber-600 shrink-0"><Star className="h-3 w-3 fill-current" />{p.avaliacao}</div>
+                  </div>
+                  {p.telefone && <div className="text-xs text-muted-foreground mt-1 flex items-center gap-1"><Phone className="h-3 w-3" />{p.telefone}</div>}
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
+
         <Button
           className="w-full h-11"
           disabled={!regiao || !tipo || variacaoIdx === null}
-          onClick={() => setEtapa("anamnese")}
+          onClick={continuarParaAnamnese}
         >
-          Continuar para anamnese
+          {authLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : user ? "Continuar para anamnese" : "Entrar para continuar"}
         </Button>
 
         {etapa !== "busca" && variacaoSelecionada && (
@@ -211,7 +311,8 @@ function ClientePanel() {
           <AnamneseForm
             anamnese={anamnese}
             setAnamnese={setAnamnese}
-            onContinuar={() => setEtapa("pagamento")}
+            onContinuar={salvarAnamneseEContinuar}
+            salvando={salvando}
           />
         )}
 
@@ -220,7 +321,8 @@ function ClientePanel() {
             valor={variacaoSelecionada.valor}
             pagamento={pagamento}
             setPagamento={setPagamento}
-            onConfirmar={() => setEtapa("concluido")}
+            onConfirmar={confirmarAgendamento}
+            salvando={salvando}
           />
         )}
 
@@ -248,11 +350,12 @@ type AnamneseData = {
 };
 
 function AnamneseForm({
-  anamnese, setAnamnese, onContinuar,
+  anamnese, setAnamnese, onContinuar, salvando,
 }: {
   anamnese: AnamneseData;
   setAnamnese: React.Dispatch<React.SetStateAction<AnamneseData>>;
   onContinuar: () => void;
+  salvando?: boolean;
 }) {
   const set = (k: keyof AnamneseData) => (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) =>
     setAnamnese(prev => ({ ...prev, [k]: e.target.value }));
@@ -311,8 +414,8 @@ function AnamneseForm({
         <Textarea value={anamnese.contraindicacoes} onChange={set("contraindicacoes")} placeholder="Algo que devamos evitar" />
       </Section>
 
-      <Button className="w-full h-11" disabled={!valido} onClick={onContinuar}>
-        Continuar para pagamento
+      <Button className="w-full h-11" disabled={!valido || salvando} onClick={onContinuar}>
+        {salvando && <Loader2 className="h-4 w-4 animate-spin mr-2" />}Continuar para pagamento
       </Button>
     </div>
   );
@@ -337,12 +440,13 @@ function Field({ label, children }: { label: string; children: React.ReactNode }
 }
 
 function PagamentoForm({
-  valor, pagamento, setPagamento, onConfirmar,
+  valor, pagamento, setPagamento, onConfirmar, salvando,
 }: {
   valor: number;
   pagamento: string;
   setPagamento: (v: string) => void;
   onConfirmar: () => void;
+  salvando?: boolean;
 }) {
   const opcoes = [
     { id: "Pix", icon: <QrCode className="h-5 w-5" />, desc: "Pagamento instantâneo" },
@@ -380,15 +484,16 @@ function PagamentoForm({
         ))}
       </RadioGroup>
 
-      <Button className="w-full h-11" disabled={!pagamento} onClick={onConfirmar}>
-        Confirmar agendamento
+      <Button className="w-full h-11" disabled={!pagamento || salvando} onClick={onConfirmar}>
+        {salvando && <Loader2 className="h-4 w-4 animate-spin mr-2" />}Confirmar agendamento
       </Button>
     </div>
   );
 }
 
 function MassoterapeutaPanel() {
-  const [regiao, setRegiao] = useState("");
+  const navigate = useNavigate();
+  const { user } = useAuth();
   return (
     <Card className="shadow-[var(--shadow-soft)]">
       <CardHeader>
@@ -398,34 +503,18 @@ function MassoterapeutaPanel() {
         <CardDescription>Receba clientes da sua região e amplie sua agenda.</CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
-        <div className="grid sm:grid-cols-2 gap-4">
-          <div className="space-y-2">
-            <Label>Nome completo</Label>
-            <Input placeholder="Seu nome" />
-          </div>
-          <div className="space-y-2">
-            <Label>WhatsApp</Label>
-            <Input placeholder="(85) 9 9999-9999" />
-          </div>
-        </div>
-        <div className="space-y-2">
-          <Label>Região de atendimento</Label>
-          <Select value={regiao} onValueChange={setRegiao}>
-            <SelectTrigger><SelectValue placeholder="Selecione sua cidade" /></SelectTrigger>
-            <SelectContent>
-              {REGIOES.map(r => <SelectItem key={r} value={r}>{r}</SelectItem>)}
-            </SelectContent>
-          </Select>
-        </div>
-        <div className="space-y-2">
-          <Label>Especialidades</Label>
-          <div className="flex flex-wrap gap-2">
-            {MASSAGENS.map(m => (
-              <Badge key={m.id} variant="outline" className="cursor-pointer hover:bg-accent">{m.nome}</Badge>
-            ))}
-          </div>
-        </div>
-        <Button className="w-full h-11">Quero me cadastrar</Button>
+        <p className="text-sm text-muted-foreground">
+          Crie sua conta como <strong>Massoterapeuta</strong> para receber clientes e gerenciar sua agenda.
+          Suas informações ficam salvas com segurança e aparecem para clientes da sua região.
+        </p>
+        <ul className="text-sm space-y-2 text-muted-foreground">
+          <li className="flex items-start gap-2"><CheckCircle2 className="h-4 w-4 text-primary mt-0.5 shrink-0" /> Cadastro 100% online</li>
+          <li className="flex items-start gap-2"><CheckCircle2 className="h-4 w-4 text-primary mt-0.5 shrink-0" /> Apareça nas buscas de Aracoiaba, Aratuba, Itapiúna, Baturité e Capistrano</li>
+          <li className="flex items-start gap-2"><CheckCircle2 className="h-4 w-4 text-primary mt-0.5 shrink-0" /> Plano Premium dá destaque adicional</li>
+        </ul>
+        <Button className="w-full h-11" onClick={() => navigate({ to: "/auth", search: { redirect: "/" } })}>
+          {user ? "Acessar minha conta" : "Quero me cadastrar"}
+        </Button>
       </CardContent>
     </Card>
   );
@@ -466,23 +555,23 @@ function PremiumSection() {
 
 function PremiumCard({ tipo, icon, beneficios }: { tipo: string; icon: React.ReactNode; beneficios: { icon: React.ReactNode; title: string; desc: string }[] }) {
   return (
-    <Card className="relative overflow-hidden border-2">
-      <div className="absolute inset-x-0 top-0 h-1" style={{ background: "var(--gradient-premium)" }} />
+    <Card className="relative overflow-hidden border-2 border-emerald-800/60 bg-emerald-950/30">
+      <div className="absolute inset-x-0 top-0 h-1.5 bg-gradient-to-r from-emerald-900 via-emerald-700 to-emerald-900" />
       <CardHeader>
-        <div className="flex items-center gap-2 text-sm text-muted-foreground">{icon} Para {tipo}</div>
-        <CardTitle className="text-2xl">Premium {tipo}</CardTitle>
+        <div className="flex items-center gap-2 text-sm text-emerald-300">{icon} Para {tipo}</div>
+        <CardTitle className="text-2xl text-emerald-100">Premium {tipo}</CardTitle>
       </CardHeader>
       <CardContent className="space-y-4">
         {beneficios.map((b, i) => (
           <div key={i} className="flex gap-3">
-            <div className="h-9 w-9 rounded-lg bg-accent/40 flex items-center justify-center text-accent-foreground shrink-0">{b.icon}</div>
+            <div className="h-9 w-9 rounded-lg bg-emerald-800/60 border border-emerald-700/60 flex items-center justify-center text-emerald-200 shrink-0">{b.icon}</div>
             <div>
-              <div className="font-medium">{b.title}</div>
-              <div className="text-sm text-muted-foreground">{b.desc}</div>
+              <div className="font-medium text-emerald-100">{b.title}</div>
+              <div className="text-sm text-emerald-300/80">{b.desc}</div>
             </div>
           </div>
         ))}
-        <Button className="w-full mt-2" style={{ background: "var(--gradient-premium)", color: "white" }}>
+        <Button className="w-full mt-2 bg-emerald-800 hover:bg-emerald-700 text-emerald-50 border border-emerald-600/60">
           Assinar Premium
         </Button>
       </CardContent>
