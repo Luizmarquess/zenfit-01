@@ -492,7 +492,8 @@ function PagamentoForm({
 }
 
 function MassoterapeutaPanel() {
-  const [regiao, setRegiao] = useState("");
+  const navigate = useNavigate();
+  const { user } = useAuth();
   return (
     <Card className="shadow-[var(--shadow-soft)]">
       <CardHeader>
@@ -502,34 +503,18 @@ function MassoterapeutaPanel() {
         <CardDescription>Receba clientes da sua região e amplie sua agenda.</CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
-        <div className="grid sm:grid-cols-2 gap-4">
-          <div className="space-y-2">
-            <Label>Nome completo</Label>
-            <Input placeholder="Seu nome" />
-          </div>
-          <div className="space-y-2">
-            <Label>WhatsApp</Label>
-            <Input placeholder="(85) 9 9999-9999" />
-          </div>
-        </div>
-        <div className="space-y-2">
-          <Label>Região de atendimento</Label>
-          <Select value={regiao} onValueChange={setRegiao}>
-            <SelectTrigger><SelectValue placeholder="Selecione sua cidade" /></SelectTrigger>
-            <SelectContent>
-              {REGIOES.map(r => <SelectItem key={r} value={r}>{r}</SelectItem>)}
-            </SelectContent>
-          </Select>
-        </div>
-        <div className="space-y-2">
-          <Label>Especialidades</Label>
-          <div className="flex flex-wrap gap-2">
-            {MASSAGENS.map(m => (
-              <Badge key={m.id} variant="outline" className="cursor-pointer hover:bg-accent">{m.nome}</Badge>
-            ))}
-          </div>
-        </div>
-        <Button className="w-full h-11">Quero me cadastrar</Button>
+        <p className="text-sm text-muted-foreground">
+          Crie sua conta como <strong>Massoterapeuta</strong> para receber clientes e gerenciar sua agenda.
+          Suas informações ficam salvas com segurança e aparecem para clientes da sua região.
+        </p>
+        <ul className="text-sm space-y-2 text-muted-foreground">
+          <li className="flex items-start gap-2"><CheckCircle2 className="h-4 w-4 text-primary mt-0.5 shrink-0" /> Cadastro 100% online</li>
+          <li className="flex items-start gap-2"><CheckCircle2 className="h-4 w-4 text-primary mt-0.5 shrink-0" /> Apareça nas buscas de Aracoiaba, Aratuba, Itapiúna, Baturité e Capistrano</li>
+          <li className="flex items-start gap-2"><CheckCircle2 className="h-4 w-4 text-primary mt-0.5 shrink-0" /> Plano Premium dá destaque adicional</li>
+        </ul>
+        <Button className="w-full h-11" onClick={() => navigate({ to: "/auth", search: { redirect: "/" } })}>
+          {user ? "Acessar minha conta" : "Quero me cadastrar"}
+        </Button>
       </CardContent>
     </Card>
   );
