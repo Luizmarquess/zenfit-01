@@ -133,19 +133,32 @@ function ClientePanel() {
     setEtapa("busca");
   };
 
+  type Profissional = {
+    id: string;
+    nome: string;
+    cidade: string;
+    bio?: string | null;
+    especialidades: string[];
+    premium: boolean;
+    ativo: boolean;
+    avaliacao?: number | null;
+    telefone?: string | null;
+  };
+
   // Profissionais da cidade selecionada (premium primeiro)
-  const { data: profissionais } = useQuery({
-    queryKey: ["massoterapeutas", regiao],
+  // Anônimos veem a view pública (sem telefone); autenticados veem a tabela base
+  const { data: profissionais } = useQuery<Profissional[]>({
+    queryKey: ["massoterapeutas", regiao, !!user],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from("massoterapeutas")
+      const table = user ? "massoterapeutas" : "massoterapeutas_public";
+      const { data, error } = await (supabase as any)
+        .from(table)
         .select("*")
-        .eq("ativo", true)
         .eq("cidade", regiao)
         .order("premium", { ascending: false })
         .order("avaliacao", { ascending: false });
       if (error) throw error;
-      return data;
+      return data as Profissional[];
     },
     enabled: !!regiao,
   });
