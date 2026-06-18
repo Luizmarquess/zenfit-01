@@ -62,6 +62,13 @@ export type Database = {
             referencedRelation: "massoterapeutas"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "agendamentos_massoterapeuta_id_fkey"
+            columns: ["massoterapeuta_id"]
+            isOneToOne: false
+            referencedRelation: "massoterapeutas_public"
+            referencedColumns: ["id"]
+          },
         ]
       }
       anamneses: {
@@ -225,7 +232,45 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      massoterapeutas_public: {
+        Row: {
+          ativo: boolean | null
+          avaliacao: number | null
+          bio: string | null
+          cidade: string | null
+          created_at: string | null
+          especialidades: string[] | null
+          id: string | null
+          nome: string | null
+          premium: boolean | null
+          updated_at: string | null
+        }
+        Insert: {
+          ativo?: boolean | null
+          avaliacao?: number | null
+          bio?: string | null
+          cidade?: string | null
+          created_at?: string | null
+          especialidades?: string[] | null
+          id?: string | null
+          nome?: string | null
+          premium?: boolean | null
+          updated_at?: string | null
+        }
+        Update: {
+          ativo?: boolean | null
+          avaliacao?: number | null
+          bio?: string | null
+          cidade?: string | null
+          created_at?: string | null
+          especialidades?: string[] | null
+          id?: string | null
+          nome?: string | null
+          premium?: boolean | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
     }
     Functions: {
       has_role: {
