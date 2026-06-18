@@ -87,6 +87,10 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
       { name: "twitter:site", content: "@zenfit" },
+      { name: "twitter:title", content: "zenfit" },
+      { name: "twitter:description", content: "zenfit — Conectando clientes e massoterapeutas." },
+      { property: "og:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/76fe7e37-d23f-497e-9810-1c6bf6a48a8f/id-preview-71e4b907--62641dbc-357f-4332-8342-2ac9edfef7e6.lovable.app-1781778216178.png" },
+      { name: "twitter:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/76fe7e37-d23f-497e-9810-1c6bf6a48a8f/id-preview-71e4b907--62641dbc-357f-4332-8342-2ac9edfef7e6.lovable.app-1781778216178.png" },
     ],
     links: [
       {
