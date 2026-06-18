@@ -134,13 +134,14 @@ function ClientePanel() {
   };
 
   // Profissionais da cidade selecionada (premium primeiro)
+  // Usuários anônimos veem a view pública (sem telefone); autenticados veem a tabela base
   const { data: profissionais } = useQuery({
-    queryKey: ["massoterapeutas", regiao],
+    queryKey: ["massoterapeutas", regiao, !!user],
     queryFn: async () => {
+      const table = user ? "massoterapeutas" : "massoterapeutas_public";
       const { data, error } = await supabase
-        .from("massoterapeutas")
+        .from(table)
         .select("*")
-        .eq("ativo", true)
         .eq("cidade", regiao)
         .order("premium", { ascending: false })
         .order("avaliacao", { ascending: false });
