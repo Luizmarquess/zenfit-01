@@ -9,7 +9,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import { Sparkles, MapPin, Heart, Search, Star, Gift, TrendingUp, Users, CheckCircle2, Clock, Wallet, ClipboardList, CreditCard, Banknote, QrCode, Loader2, Phone } from "lucide-react";
+import { Sparkles, MapPin, Heart, Search, Star, Gift, TrendingUp, Users, CheckCircle2, Clock, Wallet, ClipboardList, CreditCard, Banknote, QrCode, Loader2, Phone, BadgeCheck, BarChart3, Target } from "lucide-react";
 import { Textarea } from "@/components/ui/textarea";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { supabase } from "@/integrations/supabase/client";
@@ -541,15 +541,42 @@ function PremiumSection() {
           <Sparkles className="h-3 w-3 mr-1" /> Plano Premium
         </Badge>
         <h2 className="text-3xl font-semibold tracking-tight">Vantagens exclusivas para quem é Premium</h2>
-        <p className="text-muted-foreground mt-2">Benefícios pensados para clientes e massoterapeutas.</p>
+        <p className="text-muted-foreground mt-2">Assinatura de <strong className="text-foreground">R$ 29,99/mês</strong> para destacar o seu trabalho.</p>
       </div>
+
+      {/* Proposta de valor */}
+      <Card className="mb-8 border-emerald-800/40 bg-emerald-950/20 shadow-[var(--shadow-soft)]">
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2 text-emerald-100">
+            <Target className="h-5 w-5 text-amber-400" /> Proposta de valor
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="grid md:grid-cols-3 gap-4 text-sm">
+          <div>
+            <div className="font-medium text-emerald-100 mb-1">O coração do negócio</div>
+            <p className="text-emerald-300/80">Marketplace e site de busca que facilita a comunicação direta entre massoterapeutas e clientes.</p>
+          </div>
+          <div>
+            <div className="font-medium text-emerald-100 mb-1">Diferenciais práticos</div>
+            <p className="text-emerald-300/80">Busca inteligente dividida por região e filtros com ampla variedade de preços.</p>
+          </div>
+          <div>
+            <div className="font-medium text-emerald-100 mb-1">Objetivo principal</div>
+            <p className="text-emerald-300/80">Transformar a busca por atendimento em um processo ágil, transparente e acessível para ambos os lados.</p>
+          </div>
+        </CardContent>
+      </Card>
 
       <div className="grid md:grid-cols-2 gap-6">
         <PremiumCard
           tipo="Massoterapeuta"
           icon={<TrendingUp className="h-5 w-5" />}
+          preco="R$ 29,99/mês"
+          taxa="Mantém a comissão de 15% por venda, com vantagens exclusivas."
           beneficios={[
-            { icon: <Star className="h-4 w-4" />, title: "Mais visibilidade no app", desc: "Seus serviços aparecem primeiro nas buscas." },
+            { icon: <Star className="h-4 w-4" />, title: "Destaque no topo", desc: "Aparece primeiro nos resultados de busca da região." },
+            { icon: <BadgeCheck className="h-4 w-4" />, title: "Selo de Verificação", desc: "Maior credibilidade e confiança para os clientes." },
+            { icon: <BarChart3 className="h-4 w-4" />, title: "Ferramentas Avançadas", desc: "Gestão completa de faturamento e estatísticas de acessos ao perfil." },
             { icon: <Users className="h-4 w-4" />, title: "Mais oportunidades de clientes", desc: "Destaque garantido = mais agendamentos." },
           ]}
         />
@@ -566,25 +593,31 @@ function PremiumSection() {
   );
 }
 
-function PremiumCard({ tipo, icon, beneficios }: { tipo: string; icon: React.ReactNode; beneficios: { icon: React.ReactNode; title: string; desc: string }[] }) {
+function PremiumCard({ tipo, icon, beneficios, preco, taxa }: { tipo: string; icon: React.ReactNode; beneficios: { icon: React.ReactNode; title: string; desc: string }[]; preco?: string; taxa?: string }) {
   return (
-    <Card className="relative overflow-hidden border-2 border-emerald-800/60 bg-emerald-950/30">
-      <div className="absolute inset-x-0 top-0 h-1.5 bg-gradient-to-r from-emerald-900 via-emerald-700 to-emerald-900" />
+    <Card className="relative overflow-hidden border-2 border-amber-500/50 bg-emerald-950/30">
+      <div className="absolute inset-x-0 top-0 h-1.5" style={{ background: "var(--gradient-premium)" }} />
       <CardHeader>
-        <div className="flex items-center gap-2 text-sm text-emerald-300">{icon} Para {tipo}</div>
+        <div className="flex items-center gap-2 text-sm text-amber-400">{icon} Para {tipo}</div>
         <CardTitle className="text-2xl text-emerald-100">Premium {tipo}</CardTitle>
+        {preco && (
+          <div className="pt-1">
+            <span className="text-3xl font-semibold text-amber-300">{preco}</span>
+            {taxa && <p className="text-xs text-emerald-300/80 mt-1">{taxa}</p>}
+          </div>
+        )}
       </CardHeader>
       <CardContent className="space-y-4">
         {beneficios.map((b, i) => (
           <div key={i} className="flex gap-3">
-            <div className="h-9 w-9 rounded-lg bg-emerald-800/60 border border-emerald-700/60 flex items-center justify-center text-emerald-200 shrink-0">{b.icon}</div>
+            <div className="h-9 w-9 rounded-lg bg-amber-500/15 border border-amber-500/40 flex items-center justify-center text-amber-300 shrink-0">{b.icon}</div>
             <div>
-              <div className="font-medium text-emerald-100">{b.title}</div>
+              <div className="font-medium text-amber-200">{b.title}</div>
               <div className="text-sm text-emerald-300/80">{b.desc}</div>
             </div>
           </div>
         ))}
-        <Button className="w-full mt-2 bg-emerald-800 hover:bg-emerald-700 text-emerald-50 border border-emerald-600/60">
+        <Button className="w-full mt-2 text-emerald-950 font-semibold border-none" style={{ background: "var(--gradient-premium)" }}>
           Assinar Premium
         </Button>
       </CardContent>
