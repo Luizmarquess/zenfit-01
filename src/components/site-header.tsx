@@ -38,7 +38,7 @@ export function SiteHeader() {
               <Button size="sm" variant="ghost" onClick={sair}><LogOut className="h-4 w-4" /></Button>
             </>
           ) : (
-            <Button asChild size="sm"><Link to="/auth">Entrar</Link></Button>
+            <Button asChild size="sm"><Link to="/auth" search={{ redirect: "/" }}>Entrar</Link></Button>
           ))}
         </div>
       </div>
