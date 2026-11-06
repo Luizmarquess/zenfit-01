@@ -545,24 +545,24 @@ function PremiumSection() {
       </div>
 
       {/* Proposta de valor */}
-      <Card className="mb-8 border-emerald-800/40 bg-emerald-950/20 shadow-[var(--shadow-soft)]">
+      <Card className="mb-8 border-emerald-800/30 bg-white shadow-[var(--shadow-soft)]">
         <CardHeader>
-          <CardTitle className="flex items-center gap-2 text-emerald-100">
-            <Target className="h-5 w-5 text-amber-400" /> Proposta de valor
+          <CardTitle className="flex items-center gap-2 text-emerald-950">
+            <Target className="h-5 w-5 text-amber-600" /> Proposta de valor
           </CardTitle>
         </CardHeader>
         <CardContent className="grid md:grid-cols-3 gap-4 text-sm">
           <div>
-            <div className="font-medium text-emerald-100 mb-1">O coração do negócio</div>
-            <p className="text-emerald-300/80">Marketplace e site de busca que facilita a comunicação direta entre massoterapeutas e clientes.</p>
+            <div className="font-medium text-emerald-950 mb-1">O coração do negócio</div>
+            <p className="text-emerald-900/80">Marketplace e site de busca que facilita a comunicação direta entre massoterapeutas e clientes.</p>
           </div>
           <div>
-            <div className="font-medium text-emerald-100 mb-1">Diferenciais práticos</div>
-            <p className="text-emerald-300/80">Busca inteligente dividida por região e filtros com ampla variedade de preços.</p>
+            <div className="font-medium text-emerald-950 mb-1">Diferenciais práticos</div>
+            <p className="text-emerald-900/80">Busca inteligente dividida por região e filtros com ampla variedade de preços.</p>
           </div>
           <div>
-            <div className="font-medium text-emerald-100 mb-1">Objetivo principal</div>
-            <p className="text-emerald-300/80">Transformar a busca por atendimento em um processo ágil, transparente e acessível para ambos os lados.</p>
+            <div className="font-medium text-emerald-950 mb-1">Objetivo principal</div>
+            <p className="text-emerald-900/80">Transformar a busca por atendimento em um processo ágil, transparente e acessível para ambos os lados.</p>
           </div>
         </CardContent>
       </Card>
@@ -595,25 +595,25 @@ function PremiumSection() {
 
 function PremiumCard({ tipo, icon, beneficios, preco, taxa }: { tipo: string; icon: React.ReactNode; beneficios: { icon: React.ReactNode; title: string; desc: string }[]; preco?: string; taxa?: string }) {
   return (
-    <Card className="relative overflow-hidden border-2 border-amber-500/50 bg-emerald-950/30">
+    <Card className="relative overflow-hidden border-2 border-amber-500/60 bg-white">
       <div className="absolute inset-x-0 top-0 h-1.5" style={{ background: "var(--gradient-premium)" }} />
       <CardHeader>
-        <div className="flex items-center gap-2 text-sm text-amber-400">{icon} Para {tipo}</div>
-        <CardTitle className="text-2xl text-emerald-100">Premium {tipo}</CardTitle>
+        <div className="flex items-center gap-2 text-sm text-amber-700">{icon} Para {tipo}</div>
+        <CardTitle className="text-2xl text-emerald-950">Premium {tipo}</CardTitle>
         {preco && (
           <div className="pt-1">
-            <span className="text-3xl font-semibold text-amber-300">{preco}</span>
-            {taxa && <p className="text-xs text-emerald-300/80 mt-1">{taxa}</p>}
+            <span className="text-3xl font-semibold text-amber-600">{preco}</span>
+            {taxa && <p className="text-xs text-emerald-900/80 mt-1">{taxa}</p>}
           </div>
         )}
       </CardHeader>
       <CardContent className="space-y-4">
         {beneficios.map((b, i) => (
           <div key={i} className="flex gap-3">
-            <div className="h-9 w-9 rounded-lg bg-amber-500/15 border border-amber-500/40 flex items-center justify-center text-amber-300 shrink-0">{b.icon}</div>
+            <div className="h-9 w-9 rounded-lg bg-amber-500/15 border border-amber-500/50 flex items-center justify-center text-amber-600 shrink-0">{b.icon}</div>
             <div>
-              <div className="font-medium text-amber-200">{b.title}</div>
-              <div className="text-sm text-emerald-300/80">{b.desc}</div>
+              <div className="font-medium text-amber-800">{b.title}</div>
+              <div className="text-sm text-emerald-900/80">{b.desc}</div>
             </div>
           </div>
         ))}
