@@ -16,9 +16,13 @@ export type Database = {
     Tables: {
       agendamentos: {
         Row: {
+          anamnese: Json | null
           cidade: string
           cliente_id: string
+          cliente_nome: string | null
+          cliente_telefone: string | null
           created_at: string
+          data_hora: string | null
           duracao: string
           forma_pagamento: string
           id: string
@@ -29,9 +33,13 @@ export type Database = {
           valor: number
         }
         Insert: {
+          anamnese?: Json | null
           cidade: string
           cliente_id: string
+          cliente_nome?: string | null
+          cliente_telefone?: string | null
           created_at?: string
+          data_hora?: string | null
           duracao: string
           forma_pagamento: string
           id?: string
@@ -42,9 +50,13 @@ export type Database = {
           valor: number
         }
         Update: {
+          anamnese?: Json | null
           cidade?: string
           cliente_id?: string
+          cliente_nome?: string | null
+          cliente_telefone?: string | null
           created_at?: string
+          data_hora?: string | null
           duracao?: string
           forma_pagamento?: string
           id?: string
@@ -273,6 +285,10 @@ export type Database = {
       }
     }
     Functions: {
+      horarios_ocupados: {
+        Args: { _fim: string; _inicio: string; _massoterapeuta_id: string }
+        Returns: string[]
+      }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]

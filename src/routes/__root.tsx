@@ -14,6 +14,7 @@ import appCss from "../styles.css?url";
 import { reportLovableError } from "../lib/lovable-error-reporting";
 import { supabase } from "@/integrations/supabase/client";
 import { Toaster } from "sonner";
+import { temaInicialScript } from "@/components/theme-toggle";
 
 function NotFoundComponent() {
   return (
@@ -80,16 +81,16 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "zenfit" },
-      { name: "description", content: "zenfit — Conectando clientes e massoterapeutas." },
-      { name: "author", content: "zenfit" },
-      { property: "og:title", content: "zenfit" },
-      { property: "og:description", content: "zenfit — Conectando clientes e massoterapeutas." },
+      { title: "ZenFit" },
+      { name: "description", content: "ZenFit — Conectando você ao alívio e bem-estar na sua cidade." },
+      { name: "author", content: "ZenFit" },
+      { property: "og:title", content: "ZenFit" },
+      { property: "og:description", content: "ZenFit — Conectando você ao alívio e bem-estar na sua cidade." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
       { name: "twitter:site", content: "@zenfit" },
-      { name: "twitter:title", content: "zenfit" },
-      { name: "twitter:description", content: "zenfit — Conectando clientes e massoterapeutas." },
+      { name: "twitter:title", content: "ZenFit" },
+      { name: "twitter:description", content: "ZenFit — Conectando você ao alívio e bem-estar na sua cidade." },
       { property: "og:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/76fe7e37-d23f-497e-9810-1c6bf6a48a8f/id-preview-71e4b907--62641dbc-357f-4332-8342-2ac9edfef7e6.lovable.app-1781778216178.png" },
       { name: "twitter:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/76fe7e37-d23f-497e-9810-1c6bf6a48a8f/id-preview-71e4b907--62641dbc-357f-4332-8342-2ac9edfef7e6.lovable.app-1781778216178.png" },
     ],
@@ -121,8 +122,9 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
 
 function RootShell({ children }: { children: ReactNode }) {
   return (
-    <html lang="en">
+    <html lang="pt-BR" suppressHydrationWarning>
       <head>
+        <script dangerouslySetInnerHTML={{ __html: temaInicialScript }} />
         <HeadContent />
       </head>
       <body>
@@ -150,7 +152,7 @@ function RootComponent() {
     <QueryClientProvider client={queryClient}>
       {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}
       <Outlet />
-      <Toaster position="top-right" richColors />
+      <Toaster position="top-center" richColors />
     </QueryClientProvider>
   );
 }
