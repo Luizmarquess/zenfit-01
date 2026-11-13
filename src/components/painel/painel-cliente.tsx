@@ -11,7 +11,6 @@ import {
   Clock,
   Loader2,
   MapPin,
-  MessageCircle,
   Pencil,
   Plus,
   Search,
@@ -58,7 +57,6 @@ import {
   servicosDoProfissional,
   textoPergunta,
   triagem,
-  whatsAppValido,
   type Anamnese,
   type ResultadoTriagem,
   type Servico,
@@ -85,8 +83,8 @@ export function PainelCliente() {
     telefone: perfil.telefone ? formatarWhatsApp(perfil.telefone) : "",
     cidade: perfil.cidade,
   });
-  const identificado = !!id.nome.trim() && whatsAppValido(id.telefone) && !!id.cidade;
-  // Passo 1 é obrigatório: só vai direto ao catálogo quem já tem cidade, nome e WhatsApp salvos.
+  const identificado = !!id.nome.trim() && !!id.cidade;
+  // Passo 1 é obrigatório: só vai direto ao catálogo quem já tem cidade e nome salvos.
   const [etapa, setEtapa] = useState<Etapa>(identificado ? "catalogo" : "localidade");
   const [escolha, setEscolha] = useState<Escolha | null>(null);
   const [selecao, setSelecao] = useState<Selecao | null>(null);
@@ -389,7 +387,6 @@ function EtapaLocalidade({
     e.preventDefault();
     if (!v.cidade) return toast.error("Escolha sua cidade para vermos quem atende perto de você.");
     if (!v.nome.trim()) return toast.error("Informe seu nome ou apelido.");
-    if (!whatsAppValido(v.telefone)) return toast.error("Informe um WhatsApp válido com DDD.");
     setSalvando(true);
     await onSalvar(v);
     setSalvando(false);
@@ -427,33 +424,17 @@ function EtapaLocalidade({
         </Select>
       </div>
 
-      <div className="grid gap-4 sm:grid-cols-2">
-        <div className="space-y-1.5">
-          <Label htmlFor="l-nome">Nome completo ou apelido</Label>
-          <div className="relative">
-            <User className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-            <Input
-              id="l-nome"
-              placeholder="Ex: Ana Dev"
-              value={v.nome}
-              onChange={(e) => setV({ ...v, nome: e.target.value })}
-              className="h-11 pl-9"
-            />
-          </div>
-        </div>
-        <div className="space-y-1.5">
-          <Label htmlFor="l-whats">WhatsApp</Label>
-          <div className="relative">
-            <MessageCircle className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-            <Input
-              id="l-whats"
-              inputMode="tel"
-              placeholder="Ex: (85) 9 9999-9999"
-              value={v.telefone}
-              onChange={(e) => setV({ ...v, telefone: formatarWhatsApp(e.target.value) })}
-              className="h-11 pl-9"
-            />
-          </div>
+      <div className="space-y-1.5">
+        <Label htmlFor="l-nome">Nome completo ou apelido</Label>
+        <div className="relative">
+          <User className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+          <Input
+            id="l-nome"
+            placeholder="Ex: Ana Dev"
+            value={v.nome}
+            onChange={(e) => setV({ ...v, nome: e.target.value })}
+            className="h-11 w-full pl-9"
+          />
         </div>
       </div>
 
